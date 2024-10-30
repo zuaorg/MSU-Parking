@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct ChooseSpot: View {
     var lots = DataManager.shared.lots  // Access the shared data
     var buildings = DataManager.shared.buildings
 
@@ -16,21 +16,27 @@ struct ContentView: View {
                     Text("Lots")
                         .font(.headline)
                     
-                    List(lots, id: \.name) { lot in
-                        Text("Lot: \(lot.name) - Capacity: \(lot.maxCapacity)")
-                    }
-                    
+            List(lots, id: \.id) { lot in
+                
+                if lot.availableSpots > 103 {
+                    Text("Lot: \(lot.name) - Capacity: \(lot.maxCapacity)")
+                }
+            }
+
+            
                     Text("Buildings")
                         .font(.headline)
                     
-                    List(buildings, id: \.name) { building in
-                        Text("Building: \(building.name) - Floors: \(building.floors)")
-                    }
+            List(buildings, id: \.id) { building in
+                if building.availableSpots > 103 {
+                    Text("Building: \(building.name) - Floors: \(building.floors)")
+                }
+            }
                 }
                 .padding()
     }
     }
 
 #Preview {
-    ContentView()
+    ChooseSpot()
 }
