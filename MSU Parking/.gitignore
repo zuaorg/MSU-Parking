@@ -1,0 +1,86 @@
+# --- macOS Files ---
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# --- Build Artifacts ---
+build/
+DerivedData/
+# If you're using the new build system:
+.xcworkspace/xcuserdata/
+.xcodeproj/xcuserdata/
+xcuserdata/
+xcdebugger/
+*.xcscmblueprint
+
+# --- Swift Package Manager ---
+Packages/
+.swiftpm/
+Package.resolved
+
+# --- CocoaPods ---
+Pods/
+Podfile.lock
+
+# --- Carthage ---
+Carthage/Build/
+
+# --- Xcode Specific ---
+# Ignore general Xcode project files
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# Ignore xcuserdata and other user-specific settings
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Ignore local Xcode state
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+
+# Ignore scheme management file
+*.xcscheme
+
+# --- Scheme Handling ---
+# Allow shared schemes to be tracked in version control
+!*.xcodeproj/xcshareddata/xcschemes/*.xcscheme
+!*.xcworkspace/xcshareddata/xcschemes/*.xcscheme
+
+# --- Simulator Devices ---
+# Ignore all simulator logs and device support data
+Library/Developer/CoreSimulator/Devices/
+Library/Developer/Xcode/iOS DeviceSupport/
+Library/Developer/Xcode/watchOS DeviceSupport/
+Library/Developer/Xcode/tvOS DeviceSupport/
+
+# --- Fastlane ---
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# --- Archives ---
+# Ignore Xcode archive files
+*.xcarchive
+
+# --- Playgrounds ---
+timeline.xctimeline
+playground.xcworkspace
+
+# --- Swift Package Manager Artifacts ---
+.build/
+
+# --- Temporary Files ---
+*.swp
+*.swo
+*~
+
+# --- Other ---
+# Ignore logs
+*.log
+*.trace
