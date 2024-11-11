@@ -11,7 +11,7 @@ import SwiftUI
 struct MSU_ParkingApp: App {
     var body: some Scene {
         WindowGroup {
-            ChooseEntrance()
+            AdminView().environmentObject(DataManager.shared)
         }
     }
 }
