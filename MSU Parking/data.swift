@@ -76,7 +76,7 @@ class Building: Identifiable {
 }
 
 
-class DataManager {
+class DataManager:ObservableObject {
     static let shared = DataManager()  // Singleton instance
     
     var lots: [Lot] = []
@@ -110,12 +110,55 @@ class DataManager {
             lots.append(newLot)
         }
     }
-
+    
     private func createBuildings() {
         for number in 0...3 {
             let newBuild = Building(name: "building-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], floors: 3, maxCapacity: 100 + number, nearestEntranceId: entrances[number].id)
             buildings.append(newBuild)
         }
     }
-    }
+    
+    // Methods to add Lot and Building
+        func addLot(name: String, coordinates: [Double], floors: Int, maxCapacity: Int, nearestEntranceId: String) {
+            let newLot = Lot(name: name, coordinates: coordinates, floors: floors, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
+            lots.append(newLot)
+        }
+        
+        func addBuilding(name: String, coordinates: [Double], floors: Int, maxCapacity: Int, nearestEntranceId: String) {
+            let newBuilding = Building(name: name, coordinates: coordinates, floors: floors, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
+            buildings.append(newBuilding)
+        }
+        
+        func updateLot(_ lot: Lot, name: String, coordinates: [Double], floors: Int, maxCapacity: Int) {
+            if let index = lots.firstIndex(where: { $0.id == lot.id }) {
+                lots[index].name = name
+                lots[index].coordinates = coordinates
+                lots[index].floors = floors
+                lots[index].maxCapacity = maxCapacity
+            }
+        }
+
+        func updateBuilding(_ building: Building, name: String, coordinates: [Double], floors: Int, maxCapacity: Int) {
+            if let index = buildings.firstIndex(where: { $0.id == building.id }) {
+                buildings[index].name = name
+                buildings[index].coordinates = coordinates
+                buildings[index].floors = floors
+                buildings[index].maxCapacity = maxCapacity
+            }
+        }
+
+        // Method to delete a Lot
+        func deleteLot(_ lot: Lot) {
+            if let index = lots.firstIndex(where: { $0.id == lot.id }) {
+                lots.remove(at: index)
+            }
+        }
+
+        // Method to delete a Building
+        func deleteBuilding(_ building: Building) {
+            if let index = buildings.firstIndex(where: { $0.id == building.id }) {
+                buildings.remove(at: index)
+            }
+        }
+}
 
