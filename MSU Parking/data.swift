@@ -7,15 +7,26 @@
 
 import Foundation
 
+enum Region: String, CaseIterable, Identifiable {
+    case NORTH = "North"
+    case SOUTH = "South"
+    case EAST = "East"
+    case WEST = "West"
+    
+    var id: String { self.rawValue }
+}
+
 class Entrance: Identifiable {
     let id: String = UUID().uuidString
     
     var name: String = ""
     var coordinates: [Double] = []
+    var region: Region
     
-    init (name: String, coordinates: [Double]) {
+    init (name: String, coordinates: [Double], region: Region) {
         self.name = name
         self.coordinates = coordinates
+        self.region = region
     }
 }
 
@@ -85,6 +96,7 @@ class DataManager:ObservableObject {
     
     private init() {
         createEntrances()
+        createEntrances2()
         createLots()
         createLots2()
         createBuildings()// Load data when the singleton is created
@@ -92,7 +104,14 @@ class DataManager:ObservableObject {
     
     private func createEntrances() {
         for number in 0...5 {
-            let newEnt = Entrance(name: "Entrance-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)])
+            let newEnt = Entrance(name: "North Hall-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], region: Region.NORTH)
+            entrances.append(newEnt)
+        }
+    }
+    
+    private func createEntrances2() {
+        for number in 0...5 {
+            let newEnt = Entrance(name: "South Hall-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], region: Region.SOUTH)
             entrances.append(newEnt)
         }
     }
