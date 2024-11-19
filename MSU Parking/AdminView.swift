@@ -35,7 +35,7 @@ struct AdminView: View {
                 
                 // Dynamically update text based on the currentUser
                 if let user = dataManager.currentUser {
-                    Text(user.role == "admin" ? "Admin: \(user.username)" : "User: \(user.username)")
+                    Text(user.role == "admin" ? "Admin: \(user.username)" : "User: \(user.firstName)")
                         .font(.headline)
                         .foregroundColor(.primary)
                         .frame(maxWidth: .infinity, alignment: .trailing) // Align to right
@@ -58,9 +58,124 @@ struct AdminView: View {
                     .tabItem {
                         Label("View Data", systemImage: "list.bullet").foregroundColor(primaryColor)
                     }
+                
+                CreateUserView()
+                        .tabItem {
+                            Label("Users", systemImage: "person.crop.circle.badge.plus").foregroundColor(primaryColor)
+                        }
             }
         }
         .navigationTitle("Admin Panel")
+    }
+}
+
+struct CreateUserView: View {
+    @EnvironmentObject var dataManager: DataManager
+
+    @State private var firstName: String = ""
+    @State private var lastName: String = ""
+    @State private var username: String = ""
+    @State private var password: String = ""
+    @State private var selectedRole: UserRole = .user // Enum to track selected role
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    @State private var alertTitle = ""
+
+    enum UserRole: String, CaseIterable, Identifiable {
+        case admin = "Admin"
+        case user = "User"
+        
+        var id: String { self.rawValue }
+    }
+
+    var body: some View {
+        Form {
+            // User Information Section
+            Section(header: HStack {
+                Image(systemName: "person.fill")
+                    .foregroundColor(.blue)
+                Text("Add New User")
+                    .font(.headline)
+            }) {
+                TextField("First Name", text: $firstName)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.vertical, 5)
+                
+                TextField("Last Name", text: $lastName)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.vertical, 5)
+
+                TextField("Username", text: $username)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.vertical, 5)
+                
+                SecureField("Password", text: $password)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.vertical, 5)
+                
+                Picker("Role", selection: $selectedRole) {
+                    ForEach(UserRole.allCases) { role in
+                        Text(role.rawValue).tag(role)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding(.vertical, 5)
+            }
+
+            // Save Button
+            Button(action: createUser) {
+                Text("Create User")
+                    .bold()
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(isFormValid() ? Color.blue : Color.gray)
+                    .cornerRadius(10)
+            }
+            .disabled(!isFormValid())
+            .padding(.vertical)
+        }
+        .navigationTitle("Create User")
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text(alertTitle),
+                  message: Text(alertMessage),
+                  dismissButton: .default(Text("OK")))
+        }
+    }
+
+    private func isFormValid() -> Bool {
+        return !firstName.isEmpty &&
+               !lastName.isEmpty &&
+               !username.isEmpty &&
+               !password.isEmpty
+    }
+    
+    private func createUser() {
+        let success = dataManager.registerUser(
+            firstName: firstName,
+            lastName: lastName,
+            username: username,
+            password: password,
+            role: selectedRole.rawValue.lowercased()
+        )
+
+        if success {
+            alertTitle = "Success"
+            alertMessage = "User \(username) has been created successfully."
+        } else {
+            alertTitle = "Error"
+            alertMessage = "Failed to create user. Username \(username) might already exist."
+        }
+        showAlert = true
+        clearForm()
+    }
+
+    private func clearForm() {
+        firstName = ""
+        lastName = ""
+        username = ""
+        password = ""
+        selectedRole = .user // Default to "User"
     }
 }
 

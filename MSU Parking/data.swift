@@ -88,11 +88,15 @@ class Building: Identifiable {
 
 class User: Identifiable {
     let id: String = UUID().uuidString
+    var firstName: String
+    var lastName: String
     var username: String
     var password: String
-    var role: String  // Can be "admin" or "user"
-    
-    init(username: String, password: String, role: String) {
+    var role: String
+
+    init(firstName: String, lastName: String, username: String, password: String, role: String) {
+        self.firstName = firstName
+        self.lastName = lastName
         self.username = username
         self.password = password
         self.role = role
@@ -299,28 +303,28 @@ class DataManager:ObservableObject {
     
     // for users- admin or normal users
      //Function to create some dummy users
-        private func createUsers() {
-            let adminUser = User(username: "admin123", password: "admin123", role: "admin")
-            let regularUser = User(username: "user123", password: "user123", role: "user")
-            users.append(adminUser)
-            users.append(regularUser)
+    private func createUsers() {
+        let adminUser = User(firstName: "Admin123", lastName: "Admin", username: "admin123", password: "admin123", role: "admin")
+        let regularUser = User(firstName: "User123", lastName: "User123", username: "user123", password: "user123", role: "user")
+        users.append(adminUser)
+        users.append(regularUser)
+    }
+
+    func registerUser(firstName: String, lastName: String, username: String, password: String, role: String) -> Bool {
+        // Check if username already exists
+        if users.contains(where: { $0.username == username }) {
+            return false  // Username already taken
         }
 
-        // Register a new user
-        func registerUser(username: String, password: String, role: String) -> Bool {
-            // Check if username already exists
-            if users.contains(where: { $0.username == username }) {
-                return false  // Username already taken
-            }
-
-            let newUser = User(username: username, password: password, role: role)
-            users.append(newUser)
-            return true
-        }
+        let newUser = User(firstName: firstName, lastName: lastName, username: username, password: password, role: role)
+        users.append(newUser)
+        return true
+    }
 
     // Method to authenticate a user
         func authenticateUser(username: String, password: String) -> User? {
             if let user = users.first(where: { $0.username == username && $0.password == password }) {
+                currentUser = nil
                 currentUser = user  // Store the logged-in user
                 return user
             }
