@@ -8,26 +8,55 @@
 import SwiftUI
 
 struct AdminView: View {
+    @EnvironmentObject var dataManager: DataManager  // Access the DataManager instance
+    private let primaryColor = Color(red: 209/255, green: 25/255, blue: 13/255)  // #D1190D
+    @State private var navigateToLogin: Bool = false
     var body: some View {
         VStack {
             HStack {
-                Image(systemName: "person.crop.circle.badge.plus")
-                    .foregroundColor(.blue)
-                Text("Admin")
-                    .font(.headline)
-                    .foregroundColor(.primary)
+                // Logo Button on the left (Logout button)
+                Button(action: {
+                    // Handle logout action
+                    dataManager.logout()
+                    navigateToLogin = true
+                }) {
+                    Image(systemName: "rectangle.portrait.and.arrow.right") // Logout icon
+                        .font(.title)
+                        .foregroundColor(.blue)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading) // Align to left
+                .background(
+                    NavigationLink(destination: LoginView(), isActive: $navigateToLogin) {
+                        EmptyView()
+                    }
+                    .hidden()
+                )
+                Spacer()
+                
+                // Dynamically update text based on the currentUser
+                if let user = dataManager.currentUser {
+                    Text(user.role == "admin" ? "Admin: \(user.username)" : "User: \(user.username)")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .frame(maxWidth: .infinity, alignment: .trailing) // Align to right
+                } else {
+                    Text("Not logged in")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                        .frame(maxWidth: .infinity, alignment: .trailing) // Align to right
+                }
             }
             .padding()
             
             TabView {
                 AddDataView()
                     .tabItem {
-                        Label("Add Data", systemImage: "plus.circle")
+                        Label("Add Data", systemImage: "plus.circle").foregroundColor(primaryColor)
                     }
                 
                 ViewDataView()
                     .tabItem {
-                        Label("View Data", systemImage: "list.bullet")
+                        Label("View Data", systemImage: "list.bullet").foregroundColor(primaryColor)
                     }
             }
         }
@@ -48,6 +77,7 @@ struct AddDataView: View {
     // State to handle the alert
     @State private var showAlert = false
     @State private var alertMessage = ""
+    @State private var alertTitle = ""
 
     enum ParkingAreaType: String, CaseIterable, Identifiable {
         case lot = "Lot"
@@ -137,7 +167,7 @@ struct AddDataView: View {
         }
         .navigationTitle("Add Data")
         .alert(isPresented: $showAlert) {
-            Alert(title: Text("Success"),
+            Alert(title: Text(alertTitle),
                   message: Text(alertMessage),
                   dismissButton: .default(Text("OK")))
         }
@@ -152,6 +182,7 @@ struct AddDataView: View {
     }
     
     private func addParkingArea() {
+
         guard let latitude = Double(latitude),
               let longitude = Double(longitude),
               let floors = Int(floors),
@@ -162,11 +193,27 @@ struct AddDataView: View {
         // Add based on the selected type (Lot or Building)
         let nearestEntranceId = dataManager.entrances.first?.id ?? ""
         if selectedType == .lot {
-            dataManager.addLot(name: name, coordinates: [latitude, longitude], floors: floors, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
-            alertMessage = "Parking Lot '\(name)' has been added successfully."
+            var isLotAdded = dataManager.addLot(name: name, coordinates: [latitude, longitude], floors: floors, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
+            
+            if(isLotAdded){
+                alertMessage = "Parking Lot '\(name)' has been added successfully."
+                alertTitle = "Success"
+            }else{
+                alertMessage = "Parking Lot '\(name)' already Exists."
+                alertTitle = "Failed"
+            }
+            
         } else {
-            dataManager.addBuilding(name: name, coordinates: [latitude, longitude], floors: floors, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
-            alertMessage = "Building '\(name)' has been added successfully."
+            var isBuildingAdded = dataManager.addBuilding(name: name, coordinates: [latitude, longitude], floors: floors, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
+            
+            if(isBuildingAdded){
+                alertMessage = "Building '\(name)' has been added successfully."
+                alertTitle = "Success"
+            }else{
+                alertMessage = "Building' \(name)' already Exists."
+                alertTitle = "Failed"
+            }
+            
         }
 
         // Show the success alert
