@@ -122,7 +122,7 @@ struct LoginView: View {
         if userRole == "admin" {
             return AnyView(AdminView())  // Navigate to AdminView for admin users
         } else if userRole == "user" {
-            return AnyView(ChooseEntrance())  // Navigate to ChooseEntrance for regular users
+            return AnyView(ChooseDestination())  // Navigate to ChooseEntrance for regular users
         } else {
             return AnyView(Text("Unknown Role"))  // Default case, should not happen in this setup
         }
