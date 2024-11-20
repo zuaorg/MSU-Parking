@@ -186,6 +186,8 @@ struct AddDataView: View {
     @State private var latitude: String = ""
     @State private var longitude: String = ""
     @State private var floors: String = ""
+    @State private var rows: String = ""
+    @State private var columns: String = ""
     @State private var maxCapacity: String = ""
     @State private var selectedType: ParkingAreaType = .lot // Enum to track selected type
     
@@ -250,9 +252,16 @@ struct AddDataView: View {
                 .padding(.vertical, 5)
                 
                 HStack {
-                    Image(systemName: "person.3.fill")
-                        .foregroundColor(.green)
-                    TextField("Max Capacity", text: $maxCapacity)
+                    Image(systemName: "line.3.horizontal")
+                        .foregroundColor(.orange)
+                    TextField("Rows", text: $rows)
+                        .keyboardType(.numberPad)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    Image(systemName: "line.3.horizontal")
+                        .rotationEffect(.degrees(90))
+                        .foregroundColor(.orange)
+                    TextField("Columns", text: $columns)
                         .keyboardType(.numberPad)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
@@ -301,6 +310,8 @@ struct AddDataView: View {
         guard let latitude = Double(latitude),
               let longitude = Double(longitude),
               let floors = Int(floors),
+              let rows = Int(rows),
+              let cols = Int(columns),
               let maxCapacity = Int(maxCapacity) else {
             return
         }
@@ -308,7 +319,7 @@ struct AddDataView: View {
         // Add based on the selected type (Lot or Building)
         let nearestEntranceId = dataManager.entrances.first?.id ?? ""
         if selectedType == .lot {
-            var isLotAdded = dataManager.addLot(name: name, coordinates: [latitude, longitude], floors: floors, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
+            var isLotAdded = dataManager.addLot(name: name, coordinates: [latitude, longitude], floors: floors, rows: rows, cols: cols, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
             
             if(isLotAdded){
                 alertMessage = "Parking Lot '\(name)' has been added successfully."
@@ -319,7 +330,7 @@ struct AddDataView: View {
             }
             
         } else {
-            var isBuildingAdded = dataManager.addBuilding(name: name, coordinates: [latitude, longitude], floors: floors, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
+            var isBuildingAdded = dataManager.addBuilding(name: name, coordinates: [latitude, longitude], floors: floors, rows: rows, cols: cols, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
             
             if(isBuildingAdded){
                 alertMessage = "Building '\(name)' has been added successfully."
