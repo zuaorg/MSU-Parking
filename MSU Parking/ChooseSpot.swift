@@ -8,38 +8,51 @@
 import SwiftUI
 
 struct ChooseSpot: View {
-    var spotSelection: ParkingSpot
+    var spotSelection: ParkingBuildingSelection
     @State private var isButtonPressed = false
     @State private var successMessage: String?
-    @State private var chosenSpot: (floor: Int, row: Int, column: Int)?
     
-    @Environment(\.presentationMode) var presentationMode
-    
-    init(spotSelection: ParkingSpot) {
-        self.spotSelection = spotSelection
-        switch spotSelection {
-        case .lot(let lot):
-            _chosenSpot = State(initialValue: findFirstAvailableSpot(parkingSpots: lot.parkingSpots))
-        case .building(let building):
-            _chosenSpot = State(initialValue: findFirstAvailableSpot(parkingSpots: building.parkingSpots))
-        }
-    }
+    @Environment(\.presentationMode) var presentationMode // env variable defined to keep view's presentation state and dismiss when needed
     
     var body: some View {
         VStack {
             switch spotSelection {
+                
+                // user chose a lot to park
             case .lot(let lot):
-                    Image(systemName: "car.fill")
-                        .foregroundColor(.blue)
-                        .padding()
-                    
+                
+                let chosenSpot = findFirstAvailableSpot(parkingSpots: lot.parkingSpots)
+                
+                Divider()
+                
+                if let spot = chosenSpot {
                     Text("Parking at \(lot.name)").font(.title3)
                         .padding()
                         .fontWeight(.bold)
                     
-                Divider()
-                
-                if let spot = chosenSpot {
+                    LazyVGrid(
+                        columns: Array(repeating: GridItem(.flexible()), count: lot.parkingSpots[0][0].count), // Number of columns based on parking structure
+                        spacing: 10
+                    ) {
+                        // Iterate through rows
+                        ForEach(0..<lot.parkingSpots[spot.floor].count, id: \.self) { rowIndex in
+                            // Iterate over columns in the row
+                            ForEach(0..<lot.parkingSpots[spot.floor][rowIndex].count, id: \.self) { columnIndex in
+                                let isOccupied = lot.parkingSpots[spot.floor][rowIndex][columnIndex]
+                                
+                                if !isOccupied {
+                                    Image(systemName: "car.fill")
+                                        .foregroundColor(.blue)
+                                        .padding(4)
+                                } else {
+                                    Image(systemName: "car")
+                                        .foregroundColor(.red)
+                                        .padding(4)
+                                }
+                            }
+                        }
+                    }
+                    
                     Text("Park at Spot: \(spot.row)\(spot.column)")
                         .font(.title)
                         .fontWeight(.bold)
@@ -58,7 +71,7 @@ struct ChooseSpot: View {
                             dismissButton: .default(Text("OK")) {
                                 isButtonPressed = true
                                 self.presentationMode.wrappedValue.dismiss()  // <-- Dismiss the view
-
+                                
                             }
                         )
                     }
@@ -69,20 +82,43 @@ struct ChooseSpot: View {
                         .foregroundColor(.gray)
                 }
                 
+                // user chose a building to park
             case .building(let building):
-                    Image(systemName: "car.fill")
-                        .foregroundColor(.blue)
-                        .padding()
-                    Text("Parking in \(building.name)").font(.title3)
-                        .padding()
-                        .fontWeight(.bold)
                 
-                    Divider()
-
-                
+                let chosenSpot = findFirstAvailableSpot(parkingSpots: building.parkingSpots)
                 
                 if let spot = chosenSpot {
-                    Text("Park at Floor \(spot.floor + 1), Spot: \(spot.row)\(spot.column)")
+                    
+                    Text("Parking in \(building.name), Floor \(spot.floor + 1)").font(.title3)
+                        .padding()
+                        .fontWeight(.bold)
+                    
+                    LazyVGrid(
+                        columns: Array(repeating: GridItem(.flexible()), count: building.parkingSpots[0][0].count), // Number of columns based on parking structure
+                        spacing: 10
+                    ) {
+                        // Iterate through rows
+                        ForEach(0..<building.parkingSpots[spot.floor].count, id: \.self) { rowIndex in
+                            // Iterate over columns in the row
+                            ForEach(0..<building.parkingSpots[spot.floor][rowIndex].count, id: \.self) { columnIndex in
+                                let isOccupied = building.parkingSpots[spot.floor][rowIndex][columnIndex]
+                                
+                                if !isOccupied {
+                                    Image(systemName: "car.fill")
+                                        .foregroundColor(.blue)
+                                        .padding(4)
+                                } else {
+                                    Image(systemName: "car")
+                                        .foregroundColor(.red)
+                                        .padding(4)
+                                }
+                            }
+                        }
+                    }
+                    
+                    Divider()
+                    
+                    Text("Park at Spot: \(spot.row)\(spot.column)")
                         .font(.title)
                         .fontWeight(.bold)
                         .padding()
@@ -99,8 +135,8 @@ struct ChooseSpot: View {
                             message: Text(successMessage ?? ""),
                             dismissButton: .default(Text("OK")) {
                                 isButtonPressed = true
-                                self.presentationMode.wrappedValue.dismiss()  // <-- Dismiss the view
-
+                                self.presentationMode.wrappedValue.dismiss()  // Dismiss the view
+                                
                             }
                         )
                     }
@@ -131,5 +167,5 @@ func findFirstAvailableSpot(parkingSpots: [[[Bool]]]) -> (floor: Int, row: Int, 
 }
 
 #Preview {
-    ChooseSpot(spotSelection: ParkingSpot.building(buildings[2]))
+    ChooseSpot(spotSelection: ParkingBuildingSelection.building(buildings[2]))
 }

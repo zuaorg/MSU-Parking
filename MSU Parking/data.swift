@@ -36,24 +36,26 @@ class Lot: Identifiable {
     var name: String = ""
     var coordinates: [Double] = []
     var floors: Int = 0
+    var cols: Int = 0
+    var rows: Int = 0
     var maxCapacity: Int = 0
     var availableSpots: Int = 0
     var nearestEntranceId: String?
     var parkingSpots: [[[Bool]]]
     
-    init (name: String,coordinates: [Double], floors: Int, maxCapacity: Int, nearestEntranceId: String) {
+    init (name: String,coordinates: [Double], floors: Int, rows: Int, cols: Int, nearestEntranceId: String) {
         self.name = name
         self.coordinates = coordinates
         self.floors = floors
-        self.maxCapacity = maxCapacity
+        self.maxCapacity = floors * rows * cols
         self.availableSpots = maxCapacity
         self.nearestEntranceId = nearestEntranceId
         self.parkingSpots = Array(
             repeating: Array(
-                repeating: Array(repeating: false, count: 5),
-                count: 5
+                repeating: Array(repeating: false, count: rows),
+                count: cols
             ),
-            count: 3
+            count: floors
         )
     }
 }
@@ -64,24 +66,26 @@ class Building: Identifiable {
     var name: String = ""
     var coordinates: [Double] = []
     var floors: Int = 0
+    var cols: Int = 0
+    var rows: Int = 0
     var maxCapacity: Int = 0
     var availableSpots: Int = 0
     var nearestEntranceId: String
     var parkingSpots: [[[Bool]]]
     
-    init (name: String, coordinates: [Double], floors: Int, maxCapacity: Int, nearestEntranceId: String) {
+    init (name: String, coordinates: [Double], floors: Int, rows: Int, cols: Int, nearestEntranceId: String) {
         self.name = name
         self.coordinates = coordinates
         self.floors = floors
-        self.maxCapacity = maxCapacity
+        self.maxCapacity = floors * rows * cols
         self.availableSpots = maxCapacity
         self.nearestEntranceId = nearestEntranceId
         self.parkingSpots = Array(
             repeating: Array(
-                repeating: Array(repeating: false, count: 5),
-                count: 5
+                repeating: Array(repeating: false, count: rows),
+                count: cols
             ),
-            count: 3
+            count: floors
         )
     }
 }
@@ -154,27 +158,27 @@ class DataManager:ObservableObject {
     
     private func createLots() {
         for number in 0...5 {
-            let newLot = Lot(name: "lot-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], floors: 1, maxCapacity: 100 + number, nearestEntranceId: entrances[entrances.count - number - 1].id)
+            let newLot = Lot(name: "lot-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], floors: 3, rows: 5, cols: 5, nearestEntranceId: entrances[entrances.count - number - 1].id)
             lots.append(newLot)
         }
     }
     
     private func createLots2() {
         for number in 6...11 {
-            let newLot = Lot(name: "lot-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], floors: 1, maxCapacity: 100 + number, nearestEntranceId: entrances[number - 6].id)
+            let newLot = Lot(name: "lot-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], floors: 3 + number, rows: 5 + number, cols: 5 + number, nearestEntranceId: entrances[number - 6].id)
             lots.append(newLot)
         }
     }
     
     private func createBuildings() {
         for number in 0...3 {
-            let newBuild = Building(name: "building-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], floors: 3, maxCapacity: 100 + number, nearestEntranceId: entrances[number].id)
+            let newBuild = Building(name: "building-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], floors: 3 + number, rows: 5 + number, cols: 5 + number, nearestEntranceId: entrances[number].id)
             buildings.append(newBuild)
         }
     }
     
     // Method to add Lot with validation (including name uniqueness)
-    func addLot(name: String, coordinates: [Double], floors: Int, maxCapacity: Int, nearestEntranceId: String) -> Bool {
+    func addLot(name: String, coordinates: [Double], floors: Int, rows: Int, cols: Int, maxCapacity: Int, nearestEntranceId: String) -> Bool {
         // Check if the name already exists
         if lots.contains(where: { $0.name == name }) {
             return false // Name already exists, prevent adding
@@ -194,13 +198,13 @@ class DataManager:ObservableObject {
             return false // Max Capacity must be greater than 0
         }
 
-        let newLot = Lot(name: name, coordinates: coordinates, floors: floors, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
+        let newLot = Lot(name: name, coordinates: coordinates, floors: floors, rows: rows, cols: cols, nearestEntranceId: nearestEntranceId)
         lots.append(newLot)
         return true
     }
 
     // Method to add Building with validation (including name uniqueness)
-    func addBuilding(name: String, coordinates: [Double], floors: Int, maxCapacity: Int, nearestEntranceId: String) -> Bool {
+    func addBuilding(name: String, coordinates: [Double], floors: Int, rows: Int, cols: Int, maxCapacity: Int, nearestEntranceId: String) -> Bool {
         // Check if the name already exists
         if buildings.contains(where: { $0.name == name }) {
             return false // Name already exists, prevent adding
@@ -220,7 +224,7 @@ class DataManager:ObservableObject {
             return false // Max Capacity must be greater than 0
         }
 
-        let newBuilding = Building(name: name, coordinates: coordinates, floors: floors, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
+        let newBuilding = Building(name: name, coordinates: coordinates, floors: floors, rows: rows, cols: cols, nearestEntranceId: nearestEntranceId)
         buildings.append(newBuilding)
         return true
     }

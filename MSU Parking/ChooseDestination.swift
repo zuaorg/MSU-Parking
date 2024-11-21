@@ -20,65 +20,63 @@ struct ChooseDestination: View {
     
     var body: some View {
         NavigationView {
-                    VStack {
-                        // Title with Icon
-                        HStack {
-                            
-                            Text("Destination")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            Image(systemName: "arrow.right.circle.fill")
-                                .foregroundColor(.blue)
-                        }
-                        .padding()
-                        
-                        // Picker for selecting the region
-                        Picker("Select Region", selection: $selectedRegion) {
-                            ForEach(Region.allCases) { region in
-                                Text(region.rawValue).tag(region)
-                            }
-                        }
-                        .pickerStyle(SegmentedPickerStyle())
-                        .padding()
-                        
-                        // ScrollView for the list to allow it to be scrollable
-                        ScrollView {
-                            // Display destinations or show a "No available destination" message
-                            if filteredDestinations.isEmpty {
-                                Text("No Building Found!")
-                                    .foregroundColor(.gray)
-                                    .padding()
-                            } else {
-                                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
-                                    ForEach(filteredDestinations, id: \.id) { destination in
-                                        NavigationLink(
-                                            destination: ChooseLot(lots: filteredLots(for: destination), buildings: filteredBuildings(for: destination))
-                                        ) {
-                                            VStack {
-                                                Image(systemName: "building.2.fill")
-                                                    .foregroundColor(.blue)
-                                                
-                                                Text(destination.name)
-                                                    .font(.headline)
-                                                    .foregroundColor(.primary)
-                                                    .fontWeight(.bold)
-                                            }
-                                            .frame(width: 100, height: 100)
-                                            .padding()
-                                            .background(Color(UIColor.systemGray6))
-                                            .cornerRadius(8)
-                                            .shadow(radius: 1)
-                                            
-                                            
-                                        }
-                                        .padding(.vertical, 4)
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.top)
+            VStack {
+                HStack {
+                    
+                    Text("Destination")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    Image(systemName: "arrow.right.circle.fill")
+                        .foregroundColor(.blue)
+                }
+                .padding()
+                
+                // Picker for selecting the region
+                Picker("Select Region", selection: $selectedRegion) {
+                    ForEach(Region.allCases) { region in
+                        Text(region.rawValue).tag(region)
                     }
                 }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding()
+                
+                // ScrollView for the list to allow it to be scrollable
+                ScrollView {
+                    if filteredDestinations.isEmpty {
+                        Text("No Building Found!")
+                            .foregroundColor(.gray)
+                            .padding()
+                    } else {
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+                            ForEach(filteredDestinations, id: \.id) { destination in
+                                NavigationLink(
+                                    destination: ChooseLot(lots: filteredLots(for: destination), buildings: filteredBuildings(for: destination))
+                                ) {
+                                    VStack {
+                                        Image(systemName: "building.2.fill")
+                                            .foregroundColor(.blue)
+                                        
+                                        Text(destination.name)
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
+                                            .fontWeight(.bold)
+                                    }
+                                    .frame(width: 100, height: 100)
+                                    .padding()
+                                    .background(Color(UIColor.systemGray6))
+                                    .cornerRadius(8)
+                                    .shadow(radius: 1)
+                                    
+                                    
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        }
+                    }
+                }
+                .padding(.top)
+            }
+        }
     }
     
     // Function to filter lots based on nearest destination

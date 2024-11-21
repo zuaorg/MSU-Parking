@@ -7,23 +7,24 @@
 
 import SwiftUI
 
-enum ParkingSpot {
+// enum to pass case and selected data to navigation view
+enum ParkingBuildingSelection {
     case lot(Lot)
     case building(Building)
 }
 
-enum ParkingSelection: String, CaseIterable, Identifiable {
-    case LOT = "Lots"
-    case BUILDING = "Buildings"
+// enum to select picker
+enum ParkingTypeSelection: String, CaseIterable, Identifiable {
+    case LOT
+    case BUILDING
     
     var id: String { self.rawValue }
 }
 
 struct ChooseLot: View {
-     var lots: [Lot]
+    var lots: [Lot]
     var buildings: [Building]
-    @State private var selectedItem: ParkingSelection = .LOT
-    @State private var selectedSpot: ParkingSpot? = nil  // Made optional
+    @State private var selectedItem: ParkingTypeSelection = .LOT //keep state of picker
     
     var body: some View {
         VStack {
@@ -36,8 +37,9 @@ struct ChooseLot: View {
             }
             .padding()
             
+            // picker to choose between parking buildings or lots
             Picker("Parking Type", selection: $selectedItem) {
-                ForEach(ParkingSelection.allCases) { selection in
+                ForEach(ParkingTypeSelection.allCases) { selection in
                     Text(selection.rawValue).tag(selection)
                 }
             }
@@ -60,6 +62,7 @@ struct ChooseLot: View {
     }
 }
 
+// view to show all lots with available parking spots
 struct LotGridView: View {
     var lots: [Lot]
     
@@ -81,7 +84,7 @@ struct LotGridView: View {
     }
 }
 
-
+// view to show all buildings with available parking spots
 struct BuildingGridView: View {
     var buildings: [Building]
     
@@ -103,6 +106,7 @@ struct BuildingGridView: View {
     }
 }
 
+// view to show a list item
 struct ParkingItemView: View {
     var title: String
     var icon: String
