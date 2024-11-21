@@ -59,13 +59,144 @@ struct AdminView: View {
                         Label("View Data", systemImage: "list.bullet").foregroundColor(primaryColor)
                     }
                 
-                CreateUserView()
+                UsersTabView()
                         .tabItem {
                             Label("Users", systemImage: "person.crop.circle.badge.plus").foregroundColor(primaryColor)
                         }
             }
         }
         .navigationTitle("Admin Panel")
+    }
+}
+
+
+struct UsersTabView: View {
+    @ObservedObject var dataManager = DataManager.shared
+    @State private var showAddUserSheet = false
+
+    var body: some View {
+        NavigationView {
+            List {
+                // Section: Show All Users
+                Section(header: Text("All Users")) {
+                    ForEach(dataManager.users) { user in
+                        VStack(alignment: .leading) {
+                            isLoggedInUser(user) ? Color.green.opacity(0.2) : Color.clear
+                            HStack {
+                                Text("\(user.firstName) \(user.lastName)")
+                                    .font(.headline)
+                                    .foregroundColor(isLoggedInUser(user) ? .green : .primary) // Highlight logged-in user
+                                
+                                if isLoggedInUser(user) {
+                                    Text("(You)")
+                                        .font(.subheadline)
+                                        .foregroundColor(.green)
+                                        .bold()
+                                }
+                            }
+                            Text("Role: \(user.role.capitalized)")
+                                .font(.subheadline)
+                            Text("Username: \(user.username)")
+                                .font(.footnote)
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.vertical, 5)
+                        .background(isLoggedInUser(user) ? Color.green.opacity(0.2) : Color.clear) // Highlight background
+                        .cornerRadius(8)
+                    }
+                }
+                
+                // Section: Add New User
+                Section {
+                    Button(action: {
+                        showAddUserSheet = true
+                    }) {
+                        HStack {
+                            Image(systemName: "plus.circle")
+                            Text("Add New User")
+                        }
+                    }
+                }
+            }
+            .listStyle(InsetGroupedListStyle())
+            .sheet(isPresented: $showAddUserSheet) {
+                UserFormView()
+            }
+        }
+    }
+
+    // Helper to check if the given user is the logged-in user
+    private func isLoggedInUser(_ user: User) -> Bool {
+        return dataManager.currentUser?.id == user.id
+    }
+}
+
+struct UserFormView: View {
+    @ObservedObject var dataManager = DataManager.shared
+    @Environment(\.dismiss) var dismiss
+
+    @State private var firstName: String = ""
+    @State private var lastName: String = ""
+    @State private var username: String = ""
+    @State private var password: String = ""
+    @State private var role: String = "user"
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+
+    let roles = ["admin", "user"]
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("User Details")) {
+                    TextField("First Name", text: $firstName)
+                    TextField("Last Name", text: $lastName)
+                    TextField("Username", text: $username)
+                    SecureField("Password", text: $password)
+                }
+
+                Section(header: Text("Role")) {
+                    Picker("Role", selection: $role) {
+                        ForEach(roles, id: \.self) { role in
+                            Text(role.capitalized)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                }
+            }
+            .navigationTitle("Add New User")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        saveUser()
+                    }
+                }
+            }
+            .alert(isPresented: $showAlert) {
+                Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+            }
+        }
+    }
+
+    private func saveUser() {
+        if firstName.isEmpty || lastName.isEmpty || username.isEmpty || password.isEmpty {
+            alertMessage = "All fields are required."
+            showAlert = true
+            return
+        }
+
+        let success = dataManager.registerUser(firstName: firstName, lastName: lastName, username: username, password: password, role: role)
+        if success {
+            dismiss()
+        } else {
+            alertMessage = "Username is already taken."
+            showAlert = true
+        }
     }
 }
 
@@ -186,6 +317,8 @@ struct AddDataView: View {
     @State private var latitude: String = ""
     @State private var longitude: String = ""
     @State private var floors: String = ""
+    @State private var rows: String = ""
+    @State private var columns: String = ""
     @State private var maxCapacity: String = ""
     @State private var selectedType: ParkingAreaType = .lot // Enum to track selected type
     
@@ -250,9 +383,16 @@ struct AddDataView: View {
                 .padding(.vertical, 5)
                 
                 HStack {
-                    Image(systemName: "person.3.fill")
-                        .foregroundColor(.green)
-                    TextField("Max Capacity", text: $maxCapacity)
+                    Image(systemName: "line.3.horizontal")
+                        .foregroundColor(.orange)
+                    TextField("Rows", text: $rows)
+                        .keyboardType(.numberPad)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    Image(systemName: "line.3.horizontal")
+                        .rotationEffect(.degrees(90))
+                        .foregroundColor(.orange)
+                    TextField("Columns", text: $columns)
                         .keyboardType(.numberPad)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
@@ -301,6 +441,8 @@ struct AddDataView: View {
         guard let latitude = Double(latitude),
               let longitude = Double(longitude),
               let floors = Int(floors),
+              let rows = Int(rows),
+              let cols = Int(columns),
               let maxCapacity = Int(maxCapacity) else {
             return
         }
@@ -308,7 +450,7 @@ struct AddDataView: View {
         // Add based on the selected type (Lot or Building)
         let nearestEntranceId = dataManager.entrances.first?.id ?? ""
         if selectedType == .lot {
-            var isLotAdded = dataManager.addLot(name: name, coordinates: [latitude, longitude], floors: floors, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
+            var isLotAdded = dataManager.addLot(name: name, coordinates: [latitude, longitude], floors: floors, rows: rows, cols: cols, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
             
             if(isLotAdded){
                 alertMessage = "Parking Lot '\(name)' has been added successfully."
@@ -319,7 +461,7 @@ struct AddDataView: View {
             }
             
         } else {
-            var isBuildingAdded = dataManager.addBuilding(name: name, coordinates: [latitude, longitude], floors: floors, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
+            var isBuildingAdded = dataManager.addBuilding(name: name, coordinates: [latitude, longitude], floors: floors, rows: rows, cols: cols, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
             
             if(isBuildingAdded){
                 alertMessage = "Building '\(name)' has been added successfully."
