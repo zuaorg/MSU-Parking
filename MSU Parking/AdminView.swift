@@ -318,7 +318,7 @@ struct AddDataView: View {
     @State private var longitude: String = ""
     @State private var floors: String = ""
     @State private var rows: String = ""
-    @State private var columns: String = ""
+    @State private var cols: String = ""
     @State private var maxCapacity: String = ""
     @State private var selectedType: ParkingAreaType = .lot // Enum to track selected type
     
@@ -392,7 +392,7 @@ struct AddDataView: View {
                     Image(systemName: "line.3.horizontal")
                         .rotationEffect(.degrees(90))
                         .foregroundColor(.orange)
-                    TextField("Columns", text: $columns)
+                    TextField("Columns", text: $cols)
                         .keyboardType(.numberPad)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
@@ -433,7 +433,8 @@ struct AddDataView: View {
             Double(latitude) != nil &&
             Double(longitude) != nil &&
             Int(floors) != nil &&
-            Int(maxCapacity) != nil
+            Int(rows) != nil &&
+            Int(cols) != nil
     }
     
     private func addParkingArea() {
@@ -442,15 +443,15 @@ struct AddDataView: View {
               let longitude = Double(longitude),
               let floors = Int(floors),
               let rows = Int(rows),
-              let cols = Int(columns),
-              let maxCapacity = Int(maxCapacity) else {
+              let cols = Int(cols)
+        else {
             return
         }
 
         // Add based on the selected type (Lot or Building)
         let nearestEntranceId = dataManager.entrances.first?.id ?? ""
         if selectedType == .lot {
-            var isLotAdded = dataManager.addLot(name: name, coordinates: [latitude, longitude], floors: floors, rows: rows, cols: cols, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
+            var isLotAdded = dataManager.addLot(name: name, coordinates: [latitude, longitude], floors: floors, rows: rows, cols: cols, nearestEntranceId: nearestEntranceId)
             
             if(isLotAdded){
                 alertMessage = "Parking Lot '\(name)' has been added successfully."
@@ -461,7 +462,7 @@ struct AddDataView: View {
             }
             
         } else {
-            var isBuildingAdded = dataManager.addBuilding(name: name, coordinates: [latitude, longitude], floors: floors, rows: rows, cols: cols, maxCapacity: maxCapacity, nearestEntranceId: nearestEntranceId)
+            var isBuildingAdded = dataManager.addBuilding(name: name, coordinates: [latitude, longitude], floors: floors, rows: rows, cols: cols, nearestEntranceId: nearestEntranceId)
             
             if(isBuildingAdded){
                 alertMessage = "Building '\(name)' has been added successfully."
@@ -634,7 +635,8 @@ struct EditDataView: View {
     @State private var latitude: String = ""
     @State private var longitude: String = ""
     @State private var floors: String = ""
-    @State private var maxCapacity: String = ""
+    @State private var rows: String = ""
+    @State private var cols: String = ""
     
     @State private var showDeleteAlert = false
     
@@ -656,7 +658,8 @@ struct EditDataView: View {
                             CustomTextField(title: "Latitude", text: $latitude, systemImage: "location.fill", keyboardType: .decimalPad)
                             CustomTextField(title: "Longitude", text: $longitude, systemImage: "location.fill", keyboardType: .decimalPad)
                             CustomTextField(title: "Floors", text: $floors, systemImage: "building.2.fill", keyboardType: .numberPad)
-                            CustomTextField(title: "Max Capacity", text: $maxCapacity, systemImage: "person.3.fill", keyboardType: .numberPad)
+                            CustomTextField(title: "Rows", text: $rows, systemImage: "person.3.fill", keyboardType: .numberPad)
+                            CustomTextField(title: "Columns", text: $cols, systemImage: "person.3.fill", keyboardType: .numberPad)
                         }
                     }
 
@@ -733,7 +736,8 @@ struct EditDataView: View {
             Double(latitude) != nil &&
             Double(longitude) != nil &&
             Int(floors) != nil &&
-            Int(maxCapacity) != nil
+            Int(rows) != nil &&
+            Int(cols) != nil
     }
 
     // Load data into the form
@@ -743,13 +747,15 @@ struct EditDataView: View {
             latitude = "\(lot.coordinates[0])"
             longitude = "\(lot.coordinates[1])"
             floors = "\(lot.floors)"
-            maxCapacity = "\(lot.maxCapacity)"
+            rows = "\(lot.rows)"
+            cols = "\(lot.cols)"
         } else if let building = building {
             name = building.name
             latitude = "\(building.coordinates[0])"
             longitude = "\(building.coordinates[1])"
             floors = "\(building.floors)"
-            maxCapacity = "\(building.maxCapacity)"
+            rows = "\(building.rows)"
+            cols = "\(building.cols)"
         }
     }
 
@@ -758,12 +764,14 @@ struct EditDataView: View {
         guard let latitude = Double(latitude),
               let longitude = Double(longitude),
               let floors = Int(floors),
-              let maxCapacity = Int(maxCapacity) else { return }
+              let rows = Int(rows),
+              let columns = Int(cols)
+        else { return }
         
         if let lot = lot {
-            dataManager.updateLot(lot, name: name, coordinates: [latitude, longitude], floors: floors, maxCapacity: maxCapacity)
+            dataManager.updateLot(lot, name: name, coordinates: [latitude, longitude], floors: floors, rows: rows, cols: columns)
         } else if let building = building {
-            dataManager.updateBuilding(building, name: name, coordinates: [latitude, longitude], floors: floors, maxCapacity: maxCapacity)
+            dataManager.updateBuilding(building, name: name, coordinates: [latitude, longitude], floors: floors, rows: rows, cols: columns)
         }
         
         isPresenting = false

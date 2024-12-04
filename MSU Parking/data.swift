@@ -47,6 +47,8 @@ class Lot: Identifiable {
         self.name = name
         self.coordinates = coordinates
         self.floors = floors
+        self.rows = rows
+        self.cols = cols
         self.maxCapacity = floors * rows * cols
         self.availableSpots = maxCapacity
         self.nearestEntranceId = nearestEntranceId
@@ -77,6 +79,8 @@ class Building: Identifiable {
         self.name = name
         self.coordinates = coordinates
         self.floors = floors
+        self.rows = rows
+        self.cols = cols
         self.maxCapacity = floors * rows * cols
         self.availableSpots = maxCapacity
         self.nearestEntranceId = nearestEntranceId
@@ -111,14 +115,16 @@ class Vehicle: Identifiable {
     let id: String = UUID().uuidString
     var userId: String  // User who parked the vehicle
     var licensePlate: String
+    var lotType: ParkingTypeSelection
     var lotId: String  // The Lot where the vehicle is parked
     var spot: (floor: Int, row: Int, column: Int)  // Coordinates of the parking spot in the lot
     
-    init(userId: String, licensePlate: String, lotId: String, spot: (Int, Int, Int)) {
+    init(userId: String, licensePlate: String, lotType: ParkingTypeSelection, lotId: String, spot: (Int, Int, Int)) {
         self.userId = userId
         self.licensePlate = licensePlate
         self.lotId = lotId
         self.spot = spot
+        self.lotType = lotType
     }
 }
 
@@ -178,12 +184,13 @@ class DataManager:ObservableObject {
     }
     
     // Method to add Lot with validation (including name uniqueness)
-    func addLot(name: String, coordinates: [Double], floors: Int, rows: Int, cols: Int, maxCapacity: Int, nearestEntranceId: String) -> Bool {
+    func addLot(name: String, coordinates: [Double], floors: Int, rows: Int, cols: Int, nearestEntranceId: String) -> Bool {
         // Check if the name already exists
         if lots.contains(where: { $0.name == name }) {
             return false // Name already exists, prevent adding
         }
         
+        let maxCapacity = rows * cols
         // Validate input data
         guard !name.isEmpty else {
             return false // Name must not be empty
@@ -191,7 +198,7 @@ class DataManager:ObservableObject {
         guard coordinates.count == 2, coordinates[0] != 0, coordinates[1] != 0 else {
             return false // Coordinates should have two non-zero values
         }
-        guard floors > 0 else {
+        guard floors == 0 else {
             return false // Floors must be greater than 0
         }
         guard maxCapacity > 0 else {
@@ -204,12 +211,13 @@ class DataManager:ObservableObject {
     }
 
     // Method to add Building with validation (including name uniqueness)
-    func addBuilding(name: String, coordinates: [Double], floors: Int, rows: Int, cols: Int, maxCapacity: Int, nearestEntranceId: String) -> Bool {
+    func addBuilding(name: String, coordinates: [Double], floors: Int, rows: Int, cols: Int, nearestEntranceId: String) -> Bool {
         // Check if the name already exists
         if buildings.contains(where: { $0.name == name }) {
             return false // Name already exists, prevent adding
         }
 
+        let maxCapacity = floors * rows * cols
         // Validate input data
         guard !name.isEmpty else {
             return false // Name must not be empty
@@ -230,12 +238,13 @@ class DataManager:ObservableObject {
     }
 
     // Method to update Lot with validation (including name uniqueness)
-    func updateLot(_ lot: Lot, name: String, coordinates: [Double], floors: Int, maxCapacity: Int) -> Bool {
+    func updateLot(_ lot: Lot, name: String, coordinates: [Double], floors: Int, rows: Int, cols: Int) -> Bool {
         // Check if the name already exists (except for the current lot being updated)
         if lots.contains(where: { $0.name == name && $0.id != lot.id }) {
             return false // Name already exists, prevent updating
         }
-
+        
+        let maxCapacity = floors * rows * cols
         // Validate input data
         guard !name.isEmpty else {
             return false // Name must not be empty
@@ -254,6 +263,8 @@ class DataManager:ObservableObject {
             lots[index].name = name
             lots[index].coordinates = coordinates
             lots[index].floors = floors
+            lots[index].rows = rows
+            lots[index].cols = cols
             lots[index].maxCapacity = maxCapacity
             return true
         }
@@ -261,12 +272,13 @@ class DataManager:ObservableObject {
     }
 
     // Method to update Building with validation (including name uniqueness)
-    func updateBuilding(_ building: Building, name: String, coordinates: [Double], floors: Int, maxCapacity: Int) -> Bool {
+    func updateBuilding(_ building: Building, name: String, coordinates: [Double], floors: Int, rows: Int, cols: Int) -> Bool {
         // Check if the name already exists (except for the current building being updated)
         if buildings.contains(where: { $0.name == name && $0.id != building.id }) {
             return false // Name already exists, prevent updating
         }
-
+        
+        let maxCapacity = floors * rows * cols
         // Validate input data
         guard !name.isEmpty else {
             return false // Name must not be empty
@@ -285,6 +297,8 @@ class DataManager:ObservableObject {
             buildings[index].name = name
             buildings[index].coordinates = coordinates
             buildings[index].floors = floors
+            buildings[index].rows = rows
+            buildings[index].cols = cols
             buildings[index].maxCapacity = maxCapacity
             return true
         }
@@ -345,17 +359,9 @@ class DataManager:ObservableObject {
         }
     
     // Park a vehicle in a lot
-        func parkVehicle(userId: String, licensePlate: String, lotId: String, floor: Int, row: Int, column: Int) -> Bool {
-            if let lot = lots.first(where: { $0.id == lotId }) {
-                // Check if the spot is available
-                if lot.parkingSpots[floor][row][column] == false {
-                    lot.parkingSpots[floor][row][column] = true  // Mark the spot as occupied
-                    let newVehicle = Vehicle(userId: userId, licensePlate: licensePlate, lotId: lotId, spot: (floor, row, column))
+    func parkVehicle(userId: String, licensePlate: String, lotType: ParkingTypeSelection, lotId: String, floor: Int, row: Int, column: Int) {
+                    let newVehicle = Vehicle(userId: userId, licensePlate: licensePlate, lotType: lotType, lotId: lotId, spot: (floor, row, column))
                     vehicles.append(newVehicle)
-                    return true  // Vehicle successfully parked
-                }
-            }
-            return false  // Spot is already occupied or lot is invalid
         }
         
         // Retrieve vehicles for a specific user

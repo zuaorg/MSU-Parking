@@ -13,6 +13,7 @@ struct ChooseSpot: View {
     @State private var successMessage: String?
     
     @Environment(\.presentationMode) var presentationMode // env variable defined to keep view's presentation state and dismiss when needed
+    @EnvironmentObject var dataManager: DataManager
     
     var body: some View {
         VStack {
@@ -59,10 +60,17 @@ struct ChooseSpot: View {
                         .padding()
                     
                     Button("Accept") {
-                        isButtonPressed = true
-                        lot.parkingSpots[spot.floor][spot.row][spot.column] = true
-                        lot.availableSpots -= 1
-                        successMessage = "Successfully parked at Spot: \(spot.row)\(spot.column)"
+                        //if let vehicle: Vehicle = dataManager.getVehiclesForUser(userId: dataManager.currentUser.id){
+                            isButtonPressed = true
+                            lot.parkingSpots[spot.floor][spot.row][spot.column] = true
+                            lot.availableSpots -= 1
+                            //dataManager.parkVehicle(userId: dataManager.currentUser.id, licensePlate: vehicle.licensePlate, lotType: .LOT, lotId: lot.id, floor: spot.floor, row: spot.row, column: spot.column)
+                            successMessage = "Successfully parked at Spot: \(spot.row)\(spot.column)"
+                       // }
+//                        else
+//                        {
+//                            Text("No vehicle found")
+//                        }
                     }
                     .alert(isPresented: $isButtonPressed) {
                         Alert(
