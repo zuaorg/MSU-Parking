@@ -451,7 +451,7 @@ struct AddDataView: View {
         // Add based on the selected type (Lot or Building)
         let nearestEntranceId = dataManager.entrances.first?.id ?? ""
         if selectedType == .lot {
-            var isLotAdded = dataManager.addLot(name: name, coordinates: [latitude, longitude], floors: floors, rows: rows, cols: cols, nearestEntranceId: nearestEntranceId)
+            var isLotAdded = dataManager.addLot(name: name, coordinates: [latitude, longitude], rows: rows, cols: cols, nearestEntranceId: nearestEntranceId)
             
             if(isLotAdded){
                 alertMessage = "Parking Lot '\(name)' has been added successfully."
@@ -486,6 +486,8 @@ struct AddDataView: View {
         longitude = ""
         floors = ""
         maxCapacity = ""
+        rows = ""
+        cols = ""
         selectedType = .lot // Reset to "Lot" by default
     }
 }

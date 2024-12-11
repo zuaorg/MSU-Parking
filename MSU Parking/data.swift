@@ -43,13 +43,13 @@ class Lot: Identifiable {
     var nearestEntranceId: String?
     var parkingSpots: [[[Bool]]]
     
-    init (name: String,coordinates: [Double], floors: Int, rows: Int, cols: Int, nearestEntranceId: String) {
+    init (name: String,coordinates: [Double], rows: Int, cols: Int, nearestEntranceId: String) {
         self.name = name
         self.coordinates = coordinates
-        self.floors = floors
+        self.floors = 1
         self.rows = rows
         self.cols = cols
-        self.maxCapacity = floors * rows * cols
+        self.maxCapacity = rows * cols
         self.availableSpots = maxCapacity
         self.nearestEntranceId = nearestEntranceId
         self.parkingSpots = Array(
@@ -101,6 +101,7 @@ class User: Identifiable {
     var username: String
     var password: String
     var role: String
+    var parked: Bool
 
     init(firstName: String, lastName: String, username: String, password: String, role: String) {
         self.firstName = firstName
@@ -108,6 +109,7 @@ class User: Identifiable {
         self.username = username
         self.password = password
         self.role = role
+        self.parked = false
     }
 }
 
@@ -164,14 +166,14 @@ class DataManager:ObservableObject {
     
     private func createLots() {
         for number in 0...5 {
-            let newLot = Lot(name: "lot-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], floors: 3, rows: 5, cols: 5, nearestEntranceId: entrances[entrances.count - number - 1].id)
+            let newLot = Lot(name: "lot-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], rows: 5, cols: 5, nearestEntranceId: entrances[entrances.count - number - 1].id)
             lots.append(newLot)
         }
     }
     
     private func createLots2() {
         for number in 6...11 {
-            let newLot = Lot(name: "lot-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], floors: 3 + number, rows: 5 + number, cols: 5 + number, nearestEntranceId: entrances[number - 6].id)
+            let newLot = Lot(name: "lot-\(number)", coordinates: [123.0 + Double(number), 456.0 + Double(number)], rows: 5 + number, cols: 5 + number, nearestEntranceId: entrances[number - 6].id)
             lots.append(newLot)
         }
     }
@@ -184,7 +186,7 @@ class DataManager:ObservableObject {
     }
     
     // Method to add Lot with validation (including name uniqueness)
-    func addLot(name: String, coordinates: [Double], floors: Int, rows: Int, cols: Int, nearestEntranceId: String) -> Bool {
+    func addLot(name: String, coordinates: [Double], rows: Int, cols: Int, nearestEntranceId: String) -> Bool {
         // Check if the name already exists
         if lots.contains(where: { $0.name == name }) {
             return false // Name already exists, prevent adding
@@ -198,14 +200,11 @@ class DataManager:ObservableObject {
         guard coordinates.count == 2, coordinates[0] != 0, coordinates[1] != 0 else {
             return false // Coordinates should have two non-zero values
         }
-        guard floors == 0 else {
-            return false // Floors must be greater than 0
-        }
         guard maxCapacity > 0 else {
             return false // Max Capacity must be greater than 0
         }
 
-        let newLot = Lot(name: name, coordinates: coordinates, floors: floors, rows: rows, cols: cols, nearestEntranceId: nearestEntranceId)
+        let newLot = Lot(name: name, coordinates: coordinates, rows: rows, cols: cols, nearestEntranceId: nearestEntranceId)
         lots.append(newLot)
         return true
     }
@@ -319,13 +318,23 @@ class DataManager:ObservableObject {
             }
         }
     
+    func getBuildingById(buildingId: String) -> Building? {
+            return buildings.first { $0.id == buildingId }
+        }
+    
+    func getLotById(lotId: String) -> Lot? {
+            return lots.first { $0.id == lotId }
+        }
+    
     // for users- admin or normal users
      //Function to create some dummy users
     private func createUsers() {
-        let adminUser = User(firstName: "Admin123", lastName: "Admin", username: "admin123", password: "admin123", role: "admin")
-        let regularUser = User(firstName: "User123", lastName: "User123", username: "user123", password: "user123", role: "user")
+        let adminUser = User(firstName: "Admin123", lastName: "Admin", username: "Admin123", password: "admin123", role: "admin")
+        let regularUser = User(firstName: "User123", lastName: "User123", username: "User123", password: "user123", role: "user")
+        let regularUser2 = User(firstName: "User456", lastName: "User456", username: "User456", password: "user456", role: "user")
         users.append(adminUser)
         users.append(regularUser)
+        users.append(regularUser2)
     }
 
     func registerUser(firstName: String, lastName: String, username: String, password: String, role: String) -> Bool {
@@ -369,7 +378,7 @@ class DataManager:ObservableObject {
             return vehicles.filter { $0.userId == userId }
         }
         
-        // Optionally, add a method to remove vehicle when the user leaves
+        // Method to remove vehicle when the user leaves
         func removeVehicle(vehicleId: String) {
             if let index = vehicles.firstIndex(where: { $0.id == vehicleId }) {
                 vehicles.remove(at: index)
